@@ -363,6 +363,7 @@ export class ExtensionRunner {
 	private getScopedModels: () => readonly ScopedModel[] = () => [];
 	private isIdleFn: () => boolean = () => true;
 	private isProjectTrustedFn: () => boolean = () => true;
+	private getBashToolOptionsFn: ExtensionContext["getBashToolOptions"] = () => ({});
 	private getSignalFn: () => AbortSignal | undefined = () => undefined;
 	private waitForIdleFn: () => Promise<void> = async () => {};
 	private abortFn: () => void = () => {};
@@ -429,6 +430,9 @@ export class ExtensionRunner {
 		this.getScopedModels = contextActions.getScopedModels;
 		this.isIdleFn = contextActions.isIdle;
 		this.isProjectTrustedFn = contextActions.isProjectTrusted;
+		// External JS consumers may pass a contextActions object that predates this key.
+		this.getBashToolOptionsFn =
+			(contextActions as Partial<ExtensionContextActions>).getBashToolOptions ?? (() => ({}));
 		this.getSignalFn = contextActions.getSignal;
 		this.abortFn = contextActions.abort;
 		this.hasPendingMessagesFn = contextActions.hasPendingMessages;
@@ -858,6 +862,10 @@ export class ExtensionRunner {
 			get signal() {
 				runner.assertActive();
 				return runner.getSignalFn();
+			},
+			getBashToolOptions: () => {
+				runner.assertActive();
+				return runner.getBashToolOptionsFn();
 			},
 			abort: () => {
 				runner.assertActive();

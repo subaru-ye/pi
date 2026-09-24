@@ -6,7 +6,7 @@
  */
 
 import type { AgentTool } from "@earendil-works/pi-agent-core";
-import { wrapToolDefinition } from "../tools/tool-definition-wrapper.ts";
+import { bashToolOptionsContext } from "../tools/bash-tool-options-context.ts";
 import type { ExtensionRunner } from "./runner.ts";
 import type { RegisteredTool } from "./types.ts";
 
@@ -15,7 +15,23 @@ import type { RegisteredTool } from "./types.ts";
  * Uses the runner's createContext() for consistent context across tools and event handlers.
  */
 export function wrapRegisteredTool(registeredTool: RegisteredTool, runner: ExtensionRunner): AgentTool {
-	return wrapToolDefinition(registeredTool.definition, () => runner.createContext());
+	const { definition } = registeredTool;
+	return {
+		name: definition.name,
+		label: definition.label,
+		description: definition.description,
+		parameters: definition.parameters,
+		constrainedSampling: definition.constrainedSampling,
+		prepareArguments: definition.prepareArguments,
+		executionMode: definition.executionMode,
+		execute: (toolCallId, params, signal, onUpdate) => {
+			// One context per execution: it seeds the bash options store and is passed to the definition.
+			const context = runner.createContext();
+			return bashToolOptionsContext.run(context.getBashToolOptions, () =>
+				definition.execute(toolCallId, params, signal, onUpdate, context),
+			);
+		},
+	};
 }
 
 /**

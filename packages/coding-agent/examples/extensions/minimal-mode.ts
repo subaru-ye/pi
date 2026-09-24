@@ -123,8 +123,8 @@ export default function (pi: ExtensionAPI) {
 		parameters: getBuiltInTools(process.cwd()).bash.parameters,
 
 		async execute(toolCallId, params, signal, onUpdate, ctx) {
-			const tools = getBuiltInTools(ctx.cwd);
-			return tools.bash.execute(toolCallId, params, signal, onUpdate);
+			const bash = createBashTool(ctx.cwd, ctx.getBashToolOptions());
+			return bash.execute(toolCallId, params, signal, onUpdate);
 		},
 
 		renderCall(args, theme, _context) {

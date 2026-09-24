@@ -99,8 +99,9 @@ export default function (pi: ExtensionAPI) {
 		description: originalBash.description,
 		parameters: originalBash.parameters,
 
-		async execute(toolCallId, params, signal, onUpdate) {
-			return originalBash.execute(toolCallId, params, signal, onUpdate);
+		async execute(toolCallId, params, signal, onUpdate, ctx) {
+			const bash = createBashTool(ctx.cwd, ctx.getBashToolOptions());
+			return bash.execute(toolCallId, params, signal, onUpdate);
 		},
 
 		renderCall(args, theme, _context) {
